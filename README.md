@@ -7,24 +7,6 @@ There is a practical difficulty that only limited scenarios are unit tested.
 
 This code provides a way to test all possible scenarios without modifying the source code by solving this problem.
 
-This is the most powerful c++ mocking tool on windows VC.
-You can easily isolate your module from all other classes or functions for an unit test.
-
-string func() {
-    return "Non mocked.";
-}
-
-class ClassTest {
-public: 
-    static int staticFunc() {
-        return 1;
-    }
-
-    int nonStaticFunc() {
-        return 2;
-    }
-};
-
 ## 1. global function
 TEST(JoMock, GlobalFunction) {
     
