@@ -1,17 +1,18 @@
-# jomock
-This is the most powerful c++ mocking tool on windows VC.
-You can easily isolate your module from all other classes or functions for an unit test.
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "../../jomock/jomock.h"
 
-1. global function
-2. static function in class
-3. non virtual function in class
+#include <iostream>
+
+using namespace ::std;
+using namespace ::testing;
 
 string func() {
     return "Non mocked.";
 }
 
 class ClassTest {
-public: 
+public:
     static int staticFunc() {
         return 1;
     }
@@ -22,12 +23,12 @@ public:
 };
 
 TEST(JoMock, GlobalFunction) {
-    
+
     EXPECT_CALL(JOMOCK(func), JOMOCK_FUNC())
         .Times(Exactly(1))
         .WillOnce(Return("Hello world."));
 
-    EXPECT_EQ("Hello world.", func());    
+    EXPECT_EQ("Hello world.", func());
 
 
     EXPECT_CALL(JOMOCK(ClassTest::staticFunc), JOMOCK_FUNC())
@@ -59,5 +60,18 @@ TEST(JoMock, NonStaticFunctionClass) {
     EXPECT_EQ(classTest.nonStaticFunc(), 2);
 }
 
-#environment
-Windows SDK 10 + Platform SDK : Visual Studio 2019 v142 + 64bit
+
+
+int main(int argc, char* argv[])
+{
+    std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
+
+    testing::InitGoogleTest(&argc, argv);
+
+    RUN_ALL_TESTS();
+
+    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
+
+    return 0;
+}
+
