@@ -1,4 +1,12 @@
-# jomock
+# why jomock
+The most difficult thing about unit testing in C++ is that only methods defined as virtual are mocked.
+Because of this, it is often impossible to use mocks properly without modifying the implemented source code.
+Also, static methods or non-virtual methods cannot be mocked.
+Because of this cause, the class and object, which are the subject of unit test, cannot isolate from other surrounding objects.
+There is a practical difficulty that only limited scenarios are unit tested.
+
+This code provides a way to test all possible scenarios without modifying the source code by solving this problem.
+
 This is the most powerful c++ mocking tool on windows VC.
 You can easily isolate your module from all other classes or functions for an unit test.
 
