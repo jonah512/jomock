@@ -1,10 +1,14 @@
-# jomock
+# why jomock?
+The most difficult thing about unit testing in C++ is that only methods defined as virtual are mocked.
+Because of this, it is often impossible to use mocks properly without modifying the implemented source code.
+Also, static methods or non-virtual methods cannot be mocked.
+Because of this cause, the class and object, which are the subject of unit test, cannot isolate from other surrounding objects.
+There is a practical difficulty that only limited scenarios are unit tested.
+
+This code provides a way to test all possible scenarios without modifying the source code by solving this problem.
+
 This is the most powerful c++ mocking tool on windows VC.
 You can easily isolate your module from all other classes or functions for an unit test.
-
-1. global function
-2. static function in class
-3. non virtual function in class
 
 string func() {
     return "Non mocked.";
@@ -21,6 +25,7 @@ public:
     }
 };
 
+## 1. global function
 TEST(JoMock, GlobalFunction) {
     
     EXPECT_CALL(JOMOCK(func), JOMOCK_FUNC())
@@ -37,6 +42,7 @@ TEST(JoMock, GlobalFunction) {
     EXPECT_EQ(ClassTest::staticFunc(), 1);
 }
 
+## 2. static function in class
 TEST(JoMock, StaticFunctionClass) {
 
     EXPECT_CALL(JOMOCK(ClassTest::staticFunc), JOMOCK_FUNC())
@@ -46,6 +52,7 @@ TEST(JoMock, StaticFunctionClass) {
     EXPECT_EQ(ClassTest::staticFunc(), 3);
 }
 
+## 3. non virtual function in class
 TEST(JoMock, NonStaticFunctionClass) {
 
     ClassTest classTest;
@@ -60,7 +67,9 @@ TEST(JoMock, NonStaticFunctionClass) {
 }
 
 # environment
-Windows SDK 10 + Platform SDK : Visual Studio 2019 v142 + 64bit
+1. Windows SDK 10 + Platform SDK : Visual Studio 2019 v142
+2. 32bit/64bit Release(without optimization option) work
+3. 64bit Debug works
 
 # original ref : CppFreeMock
 https://github.com/gzc9047/CppFreeMock
