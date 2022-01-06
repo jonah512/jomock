@@ -1,4 +1,4 @@
-# why jomock
+# why jomock?
 The most difficult thing about unit testing in C++ is that only methods defined as virtual are mocked.
 Because of this, it is often impossible to use mocks properly without modifying the implemented source code.
 Also, static methods or non-virtual methods cannot be mocked.
@@ -10,9 +10,9 @@ This code provides a way to test all possible scenarios without modifying the so
 This is the most powerful c++ mocking tool on windows VC.
 You can easily isolate your module from all other classes or functions for an unit test.
 
-1. global function
-2. static function in class
-3. non virtual function in class
+## 1. global function
+## 2. static function in class
+## 3. non virtual function in class
 
 string func() {
     return "Non mocked.";
