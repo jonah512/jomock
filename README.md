@@ -59,5 +59,5 @@ TEST(JoMock, NonStaticFunctionClass) {
     EXPECT_EQ(classTest.nonStaticFunc(), 2);
 }
 
-#environment
+# environment
 Windows SDK 10 + Platform SDK : Visual Studio 2019 v142 + 64bit
