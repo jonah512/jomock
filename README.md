@@ -61,3 +61,6 @@ TEST(JoMock, NonStaticFunctionClass) {
 
 # environment
 Windows SDK 10 + Platform SDK : Visual Studio 2019 v142 + 64bit
+
+# original ref : CppFreeMock
+https://github.com/gzc9047/CppFreeMock
