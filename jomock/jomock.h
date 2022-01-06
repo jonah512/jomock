@@ -11,8 +11,17 @@
 #include <unordered_map>
 #include <vector>
 #include <functional>
-#include <Windows.h>
 #include <memoryapi.h>
+#include <memory>
+
+#ifndef NON_WIN32
+#include <Windows.h>
+#else 
+#include <list>
+#include <cerrno>
+#include <unistd.h>
+#include <sys/mman.h>
+#endif
 
 using namespace std;
 
@@ -44,7 +53,104 @@ namespace jomock {
         }
     };
 
-    class JoMockPatch;
+    struct JoMockPatch {
+        template < typename F1, typename F2 >
+        static void graftFunction(F1 address, F2 destination, std::vector<char>& binary_backup) {
+            void* function = reinterpret_cast<void*>((std::size_t&)address);
+            if (unprotectMemoryForOnePage(function) == 0) {
+                std::abort();
+            }
+            else {
+                setJump(function, reinterpret_cast<void*>((std::size_t&)destination), binary_backup);
+            }
+        }
+
+        template < typename F >
+        static void _restore(F address, const std::vector<char>& binary_backup) {
+            revertJump(reinterpret_cast<void*>((std::size_t&)address), binary_backup);
+        }
+
+        static std::size_t alignAddress(const std::size_t address, const std::size_t page_size) {
+            return address & (~(page_size - 1));
+        }
+
+        static void backupBinary(const char* const function, std::vector<char>& binary_backup, const std::size_t size) {
+            binary_backup = std::vector<char>(function, function + size);
+        }
+
+        static bool isDistanceOverflow(const std::size_t distance) {
+            return distance > INT32_MAX && distance < ((long long)INT32_MIN);
+        }
+
+        static std::size_t calculateDistance(const void* const address, const void* const destination) {
+            std::size_t distance = reinterpret_cast<std::size_t>(destination)
+                - reinterpret_cast<std::size_t>(address)
+                - 5; // For jmp instruction;
+            return distance;
+        }
+
+        static void patchFunctionShortDistance(char* const function, const std::size_t distance) {
+            const char* const distance_bytes = reinterpret_cast<const char*>(&distance);
+            function[0] = (char)0xE9; // jmp
+            std::copy(distance_bytes, distance_bytes + 4, function + 1);
+        }
+
+        static void patchFunctionLongAddress(char* const function, const void* const destination) {
+            const char* const distance_bytes = reinterpret_cast<const char*>(&destination);
+            function[0] = 0x68; // push
+            std::copy(distance_bytes, distance_bytes + 4, function + 1);
+            function[5] = (char)0xC7;
+            function[6] = (char)0x44;
+            function[7] = (char)0x24;
+            function[8] = (char)0x04;
+            std::copy(distance_bytes + 4, distance_bytes + 8, function + 9);
+            function[13] = (char)0xC3; // ret
+        }
+
+        static void setJump(void* const address, const void* const destination, std::vector<char>& binary_backup) {
+            char* const function = reinterpret_cast<char*>(address);
+            std::size_t distance = calculateDistance(address, destination);
+            if (isDistanceOverflow(distance)) {
+                backupBinary(function, binary_backup, 14); // long jmp.
+                patchFunctionLongAddress(function, destination);
+            }
+            else {
+                backupBinary(function, binary_backup, 5); // short jmp.
+                patchFunctionShortDistance(function, distance);
+            }
+        }
+
+        static void revertJump(void* address, const std::vector<char>& binary_backup) {
+            std::copy(binary_backup.begin(), binary_backup.end(), reinterpret_cast<char*>(address));
+        }
+
+        static int unprotectMemory(const void* const address, const size_t length) {
+            void* const page = reinterpret_cast<void*>(alignAddress(reinterpret_cast<std::size_t>(address), length));
+            DWORD oldProtect;
+#ifndef NON_WIN32
+            return VirtualProtect(page, length, PAGE_EXECUTE_READWRITE, &oldProtect);
+#else
+			int ret = mprotect(page, length, PROT_READ | PROT_WRITE | PROT_EXEC);
+			if(ret != 0 ) return 0;
+			else return 1;
+#endif
+        }
+
+        static int unprotectMemoryForOnePage(void* const address) {
+            static std::size_t pageSize = 0;
+            if (pageSize == 0)
+            {
+#ifndef NON_WIN32
+                SYSTEM_INFO info;
+                ::GetSystemInfo(&info);
+                pageSize = info.dwPageSize;
+#else
+				pageSize = getpagesize();
+#endif
+            }
+            return unprotectMemory(address, pageSize);
+        }
+    };
 
     template < typename I, typename R, typename ... P >
     struct MockerEntryPoint<I(R(P ...))> {
@@ -243,97 +349,6 @@ namespace jomock {
                 restorer();
             }
             SingletonBase<mockFunctions>::getInstance().clear();
-        }
-    };
-
-    class JoMockPatch {
-    public:
-        template < typename F1, typename F2 >
-        static void graftFunction(F1 address, F2 destination, std::vector<char>& binary_backup) {
-            void* function = reinterpret_cast<void*>((std::size_t&)address);
-            if (unprotectMemoryForOnePage(function) == 0) {
-                std::abort();
-            }
-            else {
-                setJump(function, reinterpret_cast<void*>((std::size_t&)destination), binary_backup);
-            }
-        }
-
-        template < typename F >
-        static void _restore(F address, const std::vector<char>& binary_backup) {
-            revertJump(reinterpret_cast<void*>((std::size_t&)address), binary_backup);
-        }
-
-    private:
-        static std::size_t alignAddress(const std::size_t address, const std::size_t page_size) {
-            return address & (~(page_size - 1));
-        }
-
-        static void backupBinary(const char* const function, std::vector<char>& binary_backup, const std::size_t size) {
-            binary_backup = std::vector<char>(function, function + size);
-        }
-
-        static bool isDistanceOverflow(const std::size_t distance) {
-            return distance > INT32_MAX && distance < ((long long)INT32_MIN);
-        }
-
-        static std::size_t calculateDistance(const void* const address, const void* const destination) {
-            std::size_t distance = reinterpret_cast<std::size_t>(destination)
-                - reinterpret_cast<std::size_t>(address)
-                - 5; // For jmp instruction;
-            return distance;
-        }
-
-        static void patchFunctionShortDistance(char* const function, const std::size_t distance) {
-            const char* const distance_bytes = reinterpret_cast<const char*>(&distance);
-            function[0] = (char)0xE9; // jmp
-            std::copy(distance_bytes, distance_bytes + 4, function + 1);
-        }
-
-        static void patchFunctionLongAddress(char* const function, const void* const destination) {
-            const char* const distance_bytes = reinterpret_cast<const char*>(&destination);
-            function[0] = 0x68; // push
-            std::copy(distance_bytes, distance_bytes + 4, function + 1);
-            function[5] = (char)0xC7;
-            function[6] = (char)0x44;
-            function[7] = (char)0x24;
-            function[8] = (char)0x04;
-            std::copy(distance_bytes + 4, distance_bytes + 8, function + 9);
-            function[13] = (char)0xC3; // ret
-        }
-
-        static void setJump(void* const address, const void* const destination, std::vector<char>& binary_backup) {
-            char* const function = reinterpret_cast<char*>(address);
-            std::size_t distance = calculateDistance(address, destination);
-            if (isDistanceOverflow(distance)) {
-                backupBinary(function, binary_backup, 14); // long jmp.
-                patchFunctionLongAddress(function, destination);
-            }
-            else {
-                backupBinary(function, binary_backup, 5); // short jmp.
-                patchFunctionShortDistance(function, distance);
-            }
-        }
-
-        static void revertJump(void* address, const std::vector<char>& binary_backup) {
-            std::copy(binary_backup.begin(), binary_backup.end(), reinterpret_cast<char*>(address));
-        }
-
-        static int unprotectMemory(const void* const address, const size_t length) {
-            void* const page = reinterpret_cast<void*>(alignAddress(reinterpret_cast<std::size_t>(address), length));
-            DWORD oldProtect;
-            return VirtualProtect(page, length, PAGE_EXECUTE_READWRITE, &oldProtect);
-        }
-
-        static int unprotectMemoryForOnePage(void* const address) {
-            static std::size_t pageSize = 0;
-            if (pageSize == 0)
-            {
-                SYSTEM_INFO info;
-                ::GetSystemInfo(&info);
-                pageSize = info.dwPageSize;
-            }
-            return unprotectMemory(address, pageSize);
         }
     };
 }
