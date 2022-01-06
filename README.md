@@ -82,7 +82,34 @@ TEST(JoMock, ReferenceParameterFunctionTest)
 }
 ```
 
-## 5. legacy library 
+## 5. overload functions 
+```c++
+
+TEST(JoMock, NonStaticPolyFunctionClass) 
+{
+    ClassTest classTest;
+    JOMOCK_POLY(mocker1/*mocker name*/, 
+				ClassTest/*class name*/, 
+				fn1/*unique name for function pointer*/, 
+				nonStaticFuncOverload/*target function*/, 
+				int/*return type of the target function*/, 
+				(int)/*argument : *important to specify target function* */)
+    EXPECT_CALL(*mocker1, JOMOCK_FUNC(&classTest, _))
+        .Times(Exactly(1))
+        .WillOnce(Return(4));
+    EXPECT_EQ(classTest.nonStaticFuncOverload(2), 4);
+
+    char* c = nullptr;
+    JOMOCK_POLY(mocker2, ClassTest, fn2, nonStaticFuncOverload, int, (char*))
+    EXPECT_CALL(*mocker2, JOMOCK_FUNC(&classTest, _))
+        .Times(Exactly(1))
+        .WillOnce(Return(5));
+    EXPECT_EQ(classTest.nonStaticFuncOverload(c), 5);
+}
+
+```
+
+## 6. legacy library 
 ```c++
 TEST(JoMock, LogacyLibraryTest)
 {
@@ -93,16 +120,22 @@ TEST(JoMock, LogacyLibraryTest)
 }
 ```
 
-## 6. clean up mocks
+## 7. clean up mocks
 ```c++
 CLEAR_JOMOCK();
 // or 
 ::jomock::MockerCreator::restoreAll();
 ```
 # environment
+## windows case
 1. Windows SDK 10 + Platform SDK : Visual Studio 2019 v142
 2. 32bit/64bit Release(without optimization option) work
 3. 64bit Debug works
+4. gtest and gmock are installed by NuGet
+## cygwin case 
+1. sigwin latest
+2. install gtest
+3. add '#define NON_WIN32'
 
 # the original ref : 
 CppFreeMock: https://github.com/gzc9047/CppFreeMock
