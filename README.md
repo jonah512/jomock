@@ -74,12 +74,11 @@ TEST(JoMock, ReferenceParameterFunctionTest)
     string s;
     const string cs;
 
-    auto funcBinded = bind(ClassTest::referenceParameterFunc, ref(b), ref(c), ref(s), ref(cs));
-    auto mocker = &JOMOCK(ClassTest::referenceParameterFunc);
-    EXPECT_CALL(*mocker, JOMOCK_FUNC(_, _, _, _))
-        .Times(Exactly(1))
-        .WillOnce(Return("mocked func"));
-    EXPECT_EQ(funcBinded(), "mocked func");
+    EXPECT_CALL(JOMOCK(ClassTest::referenceParameterFunc), JOMOCK_FUNC(_, _, _, _))
+        .Times(Exactly(2))
+        .WillRepeatedly(Return("mocked func"));
+
+    EXPECT_EQ(ClassTest::referenceParameterFunc(ref(b), ref(c), ref(s), ref(cs)), "mocked func");
 }
 ```
 
@@ -94,6 +93,12 @@ TEST(JoMock, LogacyLibraryTest)
 }
 ```
 
+## 6. clean up mocks
+```c++
+CLEAR_JOMOCK();
+// or 
+::jomock::MockerCreator::restoreAll();
+```
 # environment
 1. Windows SDK 10 + Platform SDK : Visual Studio 2019 v142
 2. 32bit/64bit Release(without optimization option) work
