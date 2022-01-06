@@ -99,5 +99,5 @@ TEST(JoMock, LogacyLibraryTest)
 2. 32bit/64bit Release(without optimization option) work
 3. 64bit Debug works
 
-# original ref : CppFreeMock
-https://github.com/gzc9047/CppFreeMock
+# the original ref : 
+CppFreeMock: https://github.com/gzc9047/CppFreeMock
