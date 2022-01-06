@@ -1,8 +1,10 @@
 /*
 * @file      jomock.h
 * @brief     This file defines functions and classes supporting mock for static/non-virtual mehtod of c++ class.
-* @author    Josh Cho(hyugrae.cho@gmail.com)
+*            This is an open source with MIT license deployed in https://github.com/jonah512/jomock
+* @author    Josh Cho(hyugrae.cho@gmail.com, hyugrae.cho@samsung.com)
 * @date      06/Jan/2022
+* 
 */
 #pragma once
 
