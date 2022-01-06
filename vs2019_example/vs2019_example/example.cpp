@@ -8,7 +8,7 @@ using namespace ::std;
 using namespace ::testing;
 
 string func() {
-    return "Non mocked.";
+    return "no mock";
 }
 
 class ClassTest {
@@ -20,15 +20,25 @@ public:
     int nonStaticFunc() {
         return 2;
     }
+
+    static string parameterFunc(bool, char, string, const string&)
+    {
+        return "no mock";
+    }
+
+    static string referenceParameterFunc(bool&, char&, string&, const string&)
+    {
+        return "no mock";
+    }
 };
 
 TEST(JoMock, GlobalFunction) {
 
     EXPECT_CALL(JOMOCK(func), JOMOCK_FUNC())
         .Times(Exactly(1))
-        .WillOnce(Return("Hello world."));
+        .WillOnce(Return("global mock"));
 
-    EXPECT_EQ("Hello world.", func());
+    EXPECT_EQ("global mock", func());
 
 
     EXPECT_CALL(JOMOCK(ClassTest::staticFunc), JOMOCK_FUNC())
@@ -60,7 +70,38 @@ TEST(JoMock, NonStaticFunctionClass) {
     EXPECT_EQ(classTest.nonStaticFunc(), 2);
 }
 
+TEST(JoMock, ParameterFunctionTest)
+{
+    auto funcBinded = bind(ClassTest::parameterFunc, true, 'c', "test", "");
+    auto mocker = &JOMOCK(ClassTest::parameterFunc);
+    EXPECT_CALL(*mocker, JOMOCK_FUNC(_, _, _, _))
+        .Times(Exactly(1))
+        .WillOnce(Return("mocked func"));
+    EXPECT_EQ(funcBinded(), "mocked func");
+}
 
+TEST(JoMock, ReferenceParameterFunctionTest)
+{
+    bool b;
+    char c;
+    string s;
+    const string cs;
+
+    auto funcBinded = bind(ClassTest::referenceParameterFunc, ref(b), ref(c), ref(s), ref(cs));
+    auto mocker = &JOMOCK(ClassTest::referenceParameterFunc);
+    EXPECT_CALL(*mocker, JOMOCK_FUNC(_, _, _, _))
+        .Times(Exactly(1))
+        .WillOnce(Return("mocked func"));
+    EXPECT_EQ(funcBinded(), "mocked func");
+}
+
+TEST(JoMock, LogacyLibraryTest)
+{
+    EXPECT_CALL(JOMOCK(atoi), JOMOCK_FUNC(_))
+        .Times(Exactly(1))
+        .WillOnce(Return(1));
+    EXPECT_EQ(atoi("TEN"), 1);
+}
 
 int main(int argc, char* argv[])
 {
