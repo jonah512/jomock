@@ -10,10 +10,6 @@ This code provides a way to test all possible scenarios without modifying the so
 This is the most powerful c++ mocking tool on windows VC.
 You can easily isolate your module from all other classes or functions for an unit test.
 
-## 1. global function
-## 2. static function in class
-## 3. non virtual function in class
-
 string func() {
     return "Non mocked.";
 }
@@ -29,6 +25,7 @@ public:
     }
 };
 
+## 1. global function
 TEST(JoMock, GlobalFunction) {
     
     EXPECT_CALL(JOMOCK(func), JOMOCK_FUNC())
@@ -45,6 +42,7 @@ TEST(JoMock, GlobalFunction) {
     EXPECT_EQ(ClassTest::staticFunc(), 1);
 }
 
+## 2. static function in class
 TEST(JoMock, StaticFunctionClass) {
 
     EXPECT_CALL(JOMOCK(ClassTest::staticFunc), JOMOCK_FUNC())
@@ -54,6 +52,7 @@ TEST(JoMock, StaticFunctionClass) {
     EXPECT_EQ(ClassTest::staticFunc(), 3);
 }
 
+## 3. non virtual function in class
 TEST(JoMock, NonStaticFunctionClass) {
 
     ClassTest classTest;
