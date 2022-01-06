@@ -28,9 +28,14 @@ public:
         return "no mock";
     }
 
-    static string referenceParameterFunc(bool&, char&, string&, const string&)
+    static string referenceParameterFunc(bool& result, char&, string&, const string&)
     {
         return "no mock";
+    }
+
+    static void outputArgumentFunc(bool* result, int input)
+    {
+        *result = false;
     }
 };
 
@@ -50,7 +55,7 @@ TEST(JoMock, GlobalFunction)
 
     EXPECT_EQ(ClassTest::staticFunc(), 1);
 }
-
+/**/
 TEST(JoMock, StaticFunctionClass) 
 {
 
@@ -92,12 +97,27 @@ TEST(JoMock, ReferenceParameterFunctionTest)
     string s;
     const string cs;
 
-    auto funcBinded = bind(ClassTest::referenceParameterFunc, ref(b), ref(c), ref(s), ref(cs));
-    auto mocker = &JOMOCK(ClassTest::referenceParameterFunc);
-    EXPECT_CALL(*mocker, JOMOCK_FUNC(_, _, _, _))
+    EXPECT_CALL(JOMOCK(ClassTest::referenceParameterFunc), JOMOCK_FUNC(_, _, _, _))
+        .Times(Exactly(2))
+        .WillRepeatedly(Return("mocked func"));
+
+    EXPECT_EQ(ClassTest::referenceParameterFunc(ref(b), ref(c), ref(s), ref(cs)), "mocked func");
+}
+
+TEST(JoMock, OutputArgumentFunctionTest)
+{
+    bool result = false;
+    bool tmp = true;
+
+    ClassTest::outputArgumentFunc(&result, 10);
+    EXPECT_EQ(result, false);
+
+    EXPECT_CALL(JOMOCK(ClassTest::outputArgumentFunc), JOMOCK_FUNC(_, _))
         .Times(Exactly(1))
-        .WillOnce(Return("mocked func"));
-    EXPECT_EQ(funcBinded(), "mocked func");
+        .WillOnce(SetArgPointee<0>(tmp));
+
+    ClassTest::outputArgumentFunc(&result, 10);
+    EXPECT_EQ(result, true);
 }
 
 TEST(JoMock, LogacyLibraryTest)

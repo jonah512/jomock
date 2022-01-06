@@ -15,7 +15,7 @@
 using namespace std;
 
 #define JOMOCK(function) *::jomock::MockerCreator::getJoMock<::jomock::TypeForUniqMocker<__COUNTER__>>(function, #function)
-#define CLEAR_JOMOCK ::jomock::MockerCreator::RestoreAllMockerFunctionToReal
+#define CLEAR_JOMOCK ::jomock::MockerCreator::restoreAll
 #define JOMOCK_FUNC stubFunc
 
 namespace jomock {
@@ -184,7 +184,7 @@ namespace jomock {
 
     struct MockerCreator {
     private:
-        typedef list<function<void()>> RestoreFunctions;
+        typedef list<function<void()>> mockFunctions;
 
         template < typename I, typename R, typename ... P >
         static const shared_ptr<JoMockBase<R(P ...)>> createJoMock(R function(P ...), const string& functionName) {
@@ -212,7 +212,7 @@ namespace jomock {
                 return got->second;
             }
             else {
-                SingletonBase<RestoreFunctions>::getInstance().push_back(bind(JoMockCacheType::restoreCachedMockFunction));
+                SingletonBase<mockFunctions>::getInstance().push_back(bind(JoMockCacheType::restoreCachedMockFunction));
                 JoMockCacheType::getInstance().insert({ {address, createJoMock<I>(function, functionName)} });
                 return getJoMocker<I, M>(function, functionName);
             }
@@ -234,11 +234,11 @@ namespace jomock {
             return getJoMocker<I, JoMockBase<R(const void*, P ...)>>(function, functionName);
         };
 
-        static void RestoreAllMockerFunctionToReal() {
-            for (auto& restorer : SingletonBase<RestoreFunctions>::getInstance()) {
+        static void restoreAll() {
+            for (auto& restorer : SingletonBase<mockFunctions>::getInstance()) {
                 restorer();
             }
-            SingletonBase<RestoreFunctions>::getInstance().clear();
+            SingletonBase<mockFunctions>::getInstance().clear();
         }
     };
 
