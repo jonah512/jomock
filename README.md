@@ -48,6 +48,42 @@ TEST(JoMock, NonStaticFunctionClass) {
     EXPECT_EQ(classTest.nonStaticFunc(), 2);
 }
 
+## 4. method with multiple parameters
+TEST(JoMock, ParameterFunctionTest)
+{
+    auto funcBinded = bind(ClassTest::parameterFunc, true, 'c', "test", "");
+    auto mocker = &JOMOCK(ClassTest::parameterFunc);
+    EXPECT_CALL(*mocker, JOMOCK_FUNC(_, _, _, _))
+        .Times(Exactly(1))
+        .WillOnce(Return("mocked func"));
+    EXPECT_EQ(funcBinded(), "mocked func");
+}
+
+TEST(JoMock, ReferenceParameterFunctionTest)
+{
+    bool b;
+    char c;
+    string s;
+    const string cs;
+
+    auto funcBinded = bind(ClassTest::referenceParameterFunc, ref(b), ref(c), ref(s), ref(cs));
+    auto mocker = &JOMOCK(ClassTest::referenceParameterFunc);
+    EXPECT_CALL(*mocker, JOMOCK_FUNC(_, _, _, _))
+        .Times(Exactly(1))
+        .WillOnce(Return("mocked func"));
+    EXPECT_EQ(funcBinded(), "mocked func");
+}
+
+## 5. legacy library
+TEST(JoMock, LogacyLibraryTest)
+{
+    EXPECT_CALL(JOMOCK(atoi), JOMOCK_FUNC(_))
+        .Times(Exactly(1))
+        .WillOnce(Return(1));
+    EXPECT_EQ(atoi("TEN"), 1);
+}
+
+
 # environment
 1. Windows SDK 10 + Platform SDK : Visual Studio 2019 v142
 2. 32bit/64bit Release(without optimization option) work
