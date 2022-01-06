@@ -1,3 +1,9 @@
+/*
+* @file      jomock.h
+* @brief     This file defines functions and classes supporting mock for static/non-virtual mehtod of c++ class.
+* @author    Josh Cho(hyugrae.cho@gmail.com)
+* @date      06/Jan/2022
+*/
 #pragma once
 
 #include <unordered_map>
