@@ -59,5 +59,8 @@ TEST(JoMock, NonStaticFunctionClass) {
     EXPECT_EQ(classTest.nonStaticFunc(), 2);
 }
 
-#environment
+# environment
 Windows SDK 10 + Platform SDK : Visual Studio 2019 v142 + 64bit
+
+# original ref : CppFreeMock
+https://github.com/gzc9047/CppFreeMock
