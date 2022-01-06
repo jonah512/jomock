@@ -11,6 +11,11 @@ string func() {
     return "no mock";
 }
 
+int funcInt(int)
+{
+    return 100;
+}
+
 class ClassTest {
 public:
     static int staticFunc() 
@@ -18,9 +23,19 @@ public:
         return 1;
     }
 
-    int nonStaticFunc() 
+    int nonStaticFunc(int i) 
     {
         return 2;
+    }
+    
+    int nonStaticFuncOverload(char * c)
+    {
+        return 3;
+    }
+    
+    int nonStaticFuncOverload(int j)
+    {
+        return 3;
     }
 
     static string parameterFunc(bool, char, string, const string&)
@@ -66,18 +81,21 @@ TEST(JoMock, StaticFunctionClass)
     EXPECT_EQ(ClassTest::staticFunc(), 3);
 }
 
-TEST(JoMock, NonStaticFunctionClass) 
+TEST(JoMock, NonStaticPolyFunctionClass) 
 {
-
     ClassTest classTest;
-    auto mocker = &JOMOCK(&ClassTest::nonStaticFunc);
-    EXPECT_CALL(*mocker, JOMOCK_FUNC(&classTest))
+    JOMOCK_POLY(mocker1, ClassTest, fn1, nonStaticFuncOverload, int, (int))
+    EXPECT_CALL(*mocker1, JOMOCK_FUNC(&classTest, _))
         .Times(Exactly(1))
         .WillOnce(Return(4));
-    EXPECT_EQ(classTest.nonStaticFunc(), 4);
+    EXPECT_EQ(classTest.nonStaticFuncOverload(2), 4);
 
-    mocker->restore();
-    EXPECT_EQ(classTest.nonStaticFunc(), 2);
+    char* c = nullptr;
+    JOMOCK_POLY(mocker2, ClassTest, fn2, nonStaticFuncOverload, int, (char*))
+    EXPECT_CALL(*mocker2, JOMOCK_FUNC(&classTest, _))
+        .Times(Exactly(1))
+        .WillOnce(Return(5));
+    EXPECT_EQ(classTest.nonStaticFuncOverload(c), 5);
 }
 
 TEST(JoMock, ParameterFunctionTest)
@@ -98,7 +116,7 @@ TEST(JoMock, ReferenceParameterFunctionTest)
     const string cs;
 
     EXPECT_CALL(JOMOCK(ClassTest::referenceParameterFunc), JOMOCK_FUNC(_, _, _, _))
-        .Times(Exactly(2))
+        .Times(Exactly(1))
         .WillRepeatedly(Return("mocked func"));
 
     EXPECT_EQ(ClassTest::referenceParameterFunc(ref(b), ref(c), ref(s), ref(cs)), "mocked func");

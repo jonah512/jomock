@@ -15,6 +15,8 @@
 using namespace std;
 
 #define JOMOCK(function) *::jomock::MockerCreator::getJoMock<::jomock::TypeForUniqMocker<__COUNTER__>>(function, #function)
+#define JOMOCK_POLY(mocker, className, functionPoint, functionName, ret, args) ret(className::*functionPoint)args = &className::functionName;\
+                                            auto mocker = &JOMOCK(functionPoint);
 #define CLEAR_JOMOCK ::jomock::MockerCreator::restoreAll
 #define JOMOCK_FUNC stubFunc
 
@@ -199,8 +201,8 @@ namespace jomock {
 
         template < typename I, typename C, typename R, typename ... P >
         static const shared_ptr<JoMockBase<R(const void*, P ...)>> createJoMock(R(C::* function)(P ...), const string& functionName) {
-                typedef I IntegrateType(R(C::*)(const void*, P ...));
-                return shared_ptr<JoMockBase<R(const void*, P ...)>>(new JoMock<IntegrateType>(function, functionName)); \
+            typedef I IntegrateType(R(C::*)(const void*, P ...));
+            return shared_ptr<JoMockBase<R(const void*, P ...)>>(new JoMock<IntegrateType>(function, functionName)); \
         };
 
         template < typename I, typename M, typename F >
