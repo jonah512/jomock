@@ -8,8 +8,7 @@ There is a practical difficulty that only limited scenarios are unit tested.
 This code provides a way to test all possible scenarios without modifying the source code by solving this problem.
 
 ## 1. global function
-<pre>
-<code>
+```c++
 TEST(JoMock, GlobalFunction) 
 {
     EXPECT_CALL(JOMOCK(func), JOMOCK_FUNC())
@@ -25,12 +24,10 @@ TEST(JoMock, GlobalFunction)
 
     EXPECT_EQ(ClassTest::staticFunc(), 1);
 }
-</code>
-</pre>
+```
 
 ## 2. static function in class
-<pre>
-<code>
+```c++
 TEST(JoMock, StaticFunctionClass) 
 {
 
@@ -40,12 +37,10 @@ TEST(JoMock, StaticFunctionClass)
 
     EXPECT_EQ(ClassTest::staticFunc(), 3);
 }
-</code>
-</pre>
+```
 
 ## 3. non virtual function in class
-<pre>
-<code>
+```c++
 TEST(JoMock, NonStaticFunctionClass) {
 
     ClassTest classTest;
@@ -58,11 +53,10 @@ TEST(JoMock, NonStaticFunctionClass) {
     mocker->restore();
     EXPECT_EQ(classTest.nonStaticFunc(), 2);
 }
-</code>
-</pre>
+```
+
 ## 4. method with multiple parameters
-<pre>
-<code>
+```c++
 TEST(JoMock, ParameterFunctionTest)
 {
     auto funcBinded = bind(ClassTest::parameterFunc, true, 'c', "test", "");
@@ -87,12 +81,10 @@ TEST(JoMock, ReferenceParameterFunctionTest)
         .WillOnce(Return("mocked func"));
     EXPECT_EQ(funcBinded(), "mocked func");
 }
-</code>
-</pre>
+```
 
 ## 5. legacy library 
-<pre>
-<code>
+```c++
 TEST(JoMock, LogacyLibraryTest)
 {
     EXPECT_CALL(JOMOCK(atoi), JOMOCK_FUNC(_))
@@ -100,8 +92,7 @@ TEST(JoMock, LogacyLibraryTest)
         .WillOnce(Return(1));
     EXPECT_EQ(atoi("TEN"), 1);
 }
-</code>
-</pre>
+```
 
 # environment
 1. Windows SDK 10 + Platform SDK : Visual Studio 2019 v142
