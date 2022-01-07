@@ -4,7 +4,7 @@
 *            This is an open source with MIT license deployed in https://github.com/jonah512/jomock
 * @author    Josh Cho(hyugrae.cho@gmail.com, hyugrae.cho@samsung.com)
 * @date      06/Jan/2022
-* 
+*
 */
 #pragma once
 
@@ -30,6 +30,27 @@ using namespace std;
                                             auto mocker = &JOMOCK(functionPoint);
 #define CLEAR_JOMOCK ::jomock::MockerCreator::restoreAll
 #define JOMOCK_FUNC stubFunc
+#define JOMOCK_FUNC_1(function) stubFunc(function, ::testing::_)
+#define JOMOCK_FUNC_2(function) stubFunc(function, ::testing::_, ::testing::_)
+#define JOMOCK_FUNC_3(function) stubFunc(function, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_FUNC_4(function) stubFunc(function, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_FUNC_5(function) stubFunc(function, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_FUNC_6(function) stubFunc(function, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_FUNC_7(function) stubFunc(function, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_FUNC_8(function) stubFunc(function, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+
+#define JOMOCK_ARG_1 stubFunc( ::testing::_)
+#define JOMOCK_ARG_2 stubFunc( ::testing::_, ::testing::_)
+#define JOMOCK_ARG_3 stubFunc( ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_ARG_4 stubFunc( ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_ARG_5 stubFunc( ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_ARG_6 stubFunc( ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_ARG_7 stubFunc( ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_ARG_8 stubFunc( ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_ARG_9 stubFunc( ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_ARG_10 stubFunc( ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_ARG_11 stubFunc( ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
+#define JOMOCK_ARG_12 stubFunc( ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_)
 
 namespace jomock {
 
@@ -126,13 +147,13 @@ namespace jomock {
 
         static int unprotectMemory(const void* const address, const size_t length) {
             void* const page = reinterpret_cast<void*>(alignAddress(reinterpret_cast<std::size_t>(address), length));
-            DWORD oldProtect;
 #ifndef NON_WIN32_SUPPORT
+            DWORD oldProtect;
             return VirtualProtect(page, length, PAGE_EXECUTE_READWRITE, &oldProtect);
 #else
-			int ret = mprotect(page, length, PROT_READ | PROT_WRITE | PROT_EXEC);
-			if(ret != 0 ) return 0;
-			else return 1;
+            int ret = mprotect(page, length, PROT_READ | PROT_WRITE | PROT_EXEC);
+            if (ret != 0) return 0;
+            else return 1;
 #endif
         }
 
@@ -145,7 +166,7 @@ namespace jomock {
                 ::GetSystemInfo(&info);
                 pageSize = info.dwPageSize;
 #else
-				pageSize = getpagesize();
+                pageSize = getpagesize();
 #endif
             }
             return unprotectMemory(address, pageSize);
@@ -161,7 +182,7 @@ namespace jomock {
         }
     };
 
-    template < typename I, typename C, typename R, typename ... P > 
+    template < typename I, typename C, typename R, typename ... P >
     struct MockerEntryPoint<I(R(C::*)(P ...) const)> {
         typedef I IntegrateType(R(C::*)(const void*, P ...) const);
         friend struct JoMock<IntegrateType>; \
@@ -251,7 +272,7 @@ namespace jomock {
     };
 
     template < typename I, typename C, typename R, typename ... P>
-    struct JoMock<I(R(C::*)(const void*, P ...) )> : JoMockBase<R(const void*, P ...)> {
+    struct JoMock<I(R(C::*)(const void*, P ...))> : JoMockBase<R(const void*, P ...)> {
         typedef I IntegrateType(R(C::*)(const void*, P ...));
         typedef I EntryPointType(R(C::*)(P ...));
         typedef R(C::* FunctionType)(P ...);
@@ -302,7 +323,7 @@ namespace jomock {
         }
 
         template < typename I, typename C, typename R, typename ... P >
-        static const shared_ptr<JoMockBase<R(const void*, P ...)>> createJoMock(R (C::*function)(P ...) const, const string& functionName) {
+        static const shared_ptr<JoMockBase<R(const void*, P ...)>> createJoMock(R(C::* function)(P ...) const, const string& functionName) {
             typedef I IntegrateType(R(C::*)(const void*, P ...) const);
             return shared_ptr<JoMockBase<R(const void*, P ...)>>(new JoMock<IntegrateType>(function, functionName));
         };
@@ -332,7 +353,7 @@ namespace jomock {
         template < typename I, typename R, typename ... P >
         static const shared_ptr<JoMockBase<R(P ...)>> getJoMock(R function(P ...), const string& functionName) {
             return getJoMocker<I, JoMockBase<R(P ...)>>(function, functionName);
-            }
+        }
 
         template < typename I, typename C, typename R, typename ... P >
         static shared_ptr<JoMockBase<R(const void*, P ...)>> getJoMock(R(C::* function)(P ...) const, const string& functionName) {

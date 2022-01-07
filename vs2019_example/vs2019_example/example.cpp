@@ -18,21 +18,21 @@ int funcInt(int)
 
 class ClassTest {
 public:
-    static int staticFunc() 
+    static int staticFunc()
     {
         return 1;
     }
 
-    int nonStaticFunc(int i) 
+    int nonStaticFunc(int i)
     {
         return 2;
     }
-    
-    int nonStaticFuncOverload(char * c)
+
+    int nonStaticFuncOverload(char* c)
     {
         return 3;
     }
-    
+
     int nonStaticFuncOverload(int j)
     {
         return 3;
@@ -54,7 +54,7 @@ public:
     }
 };
 
-TEST(JoMock, GlobalFunction) 
+TEST(JoMock, GlobalFunction)
 {
 
     EXPECT_CALL(JOMOCK(func), JOMOCK_FUNC())
@@ -71,7 +71,7 @@ TEST(JoMock, GlobalFunction)
     EXPECT_EQ(ClassTest::staticFunc(), 1);
 }
 /**/
-TEST(JoMock, StaticFunctionClass) 
+TEST(JoMock, StaticFunctionClass)
 {
 
     EXPECT_CALL(JOMOCK(ClassTest::staticFunc), JOMOCK_FUNC())
@@ -81,18 +81,18 @@ TEST(JoMock, StaticFunctionClass)
     EXPECT_EQ(ClassTest::staticFunc(), 3);
 }
 
-TEST(JoMock, NonStaticPolyFunctionClass) 
+TEST(JoMock, NonStaticPolyFunctionClass)
 {
     ClassTest classTest;
     JOMOCK_POLY(mocker1, ClassTest, fn1, nonStaticFuncOverload, int, (int))
-    EXPECT_CALL(*mocker1, JOMOCK_FUNC(&classTest, _))
+        EXPECT_CALL(*mocker1, JOMOCK_FUNC(&classTest, _))
         .Times(Exactly(1))
         .WillOnce(Return(4));
     EXPECT_EQ(classTest.nonStaticFuncOverload(2), 4);
 
     char* c = nullptr;
     JOMOCK_POLY(mocker2, ClassTest, fn2, nonStaticFuncOverload, int, (char*))
-    EXPECT_CALL(*mocker2, JOMOCK_FUNC(&classTest, _))
+        EXPECT_CALL(*mocker2, JOMOCK_FUNC(&classTest, _))
         .Times(Exactly(1))
         .WillOnce(Return(5));
     EXPECT_EQ(classTest.nonStaticFuncOverload(c), 5);
@@ -115,7 +115,7 @@ TEST(JoMock, ReferenceParameterFunctionTest)
     string s;
     const string cs;
 
-    EXPECT_CALL(JOMOCK(ClassTest::referenceParameterFunc), JOMOCK_FUNC(_, _, _, _))
+    EXPECT_CALL(JOMOCK(ClassTest::referenceParameterFunc), JOMOCK_ARG_4)
         .Times(Exactly(1))
         .WillRepeatedly(Return("mocked func"));
 
@@ -156,4 +156,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
