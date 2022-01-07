@@ -11,17 +11,17 @@
 #include <unordered_map>
 #include <vector>
 #include <functional>
-#include <memoryapi.h>
-#include <memory>
 
-#ifndef NON_WIN32
+#ifndef NON_WIN32_SUPPORT
 #include <Windows.h>
 #else 
 #include <list>
 #include <cerrno>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <memory>
 #endif
+#include <memoryapi.h>
 
 using namespace std;
 
@@ -127,7 +127,7 @@ namespace jomock {
         static int unprotectMemory(const void* const address, const size_t length) {
             void* const page = reinterpret_cast<void*>(alignAddress(reinterpret_cast<std::size_t>(address), length));
             DWORD oldProtect;
-#ifndef NON_WIN32
+#ifndef NON_WIN32_SUPPORT
             return VirtualProtect(page, length, PAGE_EXECUTE_READWRITE, &oldProtect);
 #else
 			int ret = mprotect(page, length, PROT_READ | PROT_WRITE | PROT_EXEC);
@@ -140,7 +140,7 @@ namespace jomock {
             static std::size_t pageSize = 0;
             if (pageSize == 0)
             {
-#ifndef NON_WIN32
+#ifndef NON_WIN32_SUPPORT
                 SYSTEM_INFO info;
                 ::GetSystemInfo(&info);
                 pageSize = info.dwPageSize;
