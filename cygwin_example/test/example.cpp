@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#define NON_WIN32
+#define NON_WIN32_SUPPORT
 #include "../../jomock/jomock.h"
 
 #include <iostream>
