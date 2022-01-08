@@ -14,6 +14,7 @@
 
 #ifndef NON_WIN32_SUPPORT
 #include <Windows.h>
+#include <memoryapi.h>
 #else 
 #include <list>
 #include <cerrno>
@@ -21,7 +22,7 @@
 #include <sys/mman.h>
 #include <memory>
 #endif
-#include <memoryapi.h>
+
 
 using namespace std;
 
