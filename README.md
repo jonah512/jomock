@@ -133,9 +133,10 @@ CLEAR_JOMOCK();
 3. 64bit Debug works
 4. gtest and gmock are installed by NuGet
 ## cygwin case 
-1. sigwin latest
+1. cygwin latest
 2. install gtest
 3. add '#define NON_WIN32'
-
+## linux case
+1. add '#define NON_WIN32'
 # the original ref : 
 CppFreeMock: https://github.com/gzc9047/CppFreeMock
