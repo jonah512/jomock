@@ -16,13 +16,6 @@ TEST(JoMock, GlobalFunction)
         .WillOnce(Return("Hello world."));
 
     EXPECT_EQ("Hello world.", func());    
-
-
-    EXPECT_CALL(JOMOCK(ClassTest::staticFunc), JOMOCK_FUNC())
-        .Times(Exactly(1))
-        .WillOnce(Return(1));
-
-    EXPECT_EQ(ClassTest::staticFunc(), 1);
 }
 ```
 
