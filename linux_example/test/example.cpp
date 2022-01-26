@@ -58,9 +58,23 @@ public:
     }
 };
 
-TEST(JoMock, GlobalFunction) 
+class JoMock : public ::testing::Test
 {
+public:
 
+
+    virtual void SetUp()
+    {
+        CLEAR_JOMOCK();
+    }
+    virtual void TearDown()
+    {
+        CLEAR_JOMOCK();
+    }
+};
+
+TEST_F(JoMock, GlobalFunction)
+{
     EXPECT_CALL(JOMOCK(func), JOMOCK_FUNC())
         .Times(Exactly(1))
         .WillOnce(Return("global mock"));
@@ -75,7 +89,7 @@ TEST(JoMock, GlobalFunction)
     EXPECT_EQ(ClassTest::staticFunc(), 1);
 }
 /**/
-TEST(JoMock, StaticFunctionClass) 
+TEST_F(JoMock, StaticFunctionClass)
 {
 
     EXPECT_CALL(JOMOCK(ClassTest::staticFunc), JOMOCK_FUNC())
@@ -85,7 +99,7 @@ TEST(JoMock, StaticFunctionClass)
     EXPECT_EQ(ClassTest::staticFunc(), 3);
 }
 
-TEST(JoMock, NonStaticPolyFunctionClass) 
+TEST_F(JoMock, NonStaticPolyFunctionClass)
 {
     ClassTest classTest;
     JOMOCK_POLY(mocker1, ClassTest, fn1, nonStaticFuncOverload, int, (int))
@@ -102,7 +116,7 @@ TEST(JoMock, NonStaticPolyFunctionClass)
     EXPECT_EQ(classTest.nonStaticFuncOverload(c), 5);
 }
 
-TEST(JoMock, ParameterFunctionTest)
+TEST_F(JoMock, ParameterFunctionTest)
 {
     auto funcBinded = bind(ClassTest::parameterFunc, true, 'c', "test", "");
     auto mocker = &JOMOCK(ClassTest::parameterFunc);
@@ -112,7 +126,7 @@ TEST(JoMock, ParameterFunctionTest)
     EXPECT_EQ(funcBinded(), "mocked func");
 }
 
-TEST(JoMock, ReferenceParameterFunctionTest)
+TEST_F(JoMock, ReferenceParameterFunctionTest)
 {
     bool b;
     char c;
@@ -126,7 +140,7 @@ TEST(JoMock, ReferenceParameterFunctionTest)
     EXPECT_EQ(ClassTest::referenceParameterFunc(ref(b), ref(c), ref(s), ref(cs)), "mocked func");
 }
 
-TEST(JoMock, OutputArgumentFunctionTest)
+TEST_F(JoMock, OutputArgumentFunctionTest)
 {
     bool result = false;
     bool tmp = true;
@@ -142,7 +156,7 @@ TEST(JoMock, OutputArgumentFunctionTest)
     EXPECT_EQ(result, true);
 }
 
-TEST(JoMock, LogacyLibraryTest)
+TEST_F(JoMock, LogacyLibraryTest)
 {
     EXPECT_CALL(JOMOCK(atoi), JOMOCK_FUNC(_))
         .Times(Exactly(1))
