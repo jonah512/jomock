@@ -15,7 +15,8 @@ TEST(JoMock, GlobalFunction)
         .Times(Exactly(1))
         .WillOnce(Return("Hello world."));
 
-    EXPECT_EQ("Hello world.", func());    
+    EXPECT_EQ("Hello world.", func());
+    CLEAR_JOMOCK();
 }
 ```
 
@@ -29,6 +30,7 @@ TEST(JoMock, StaticFunctionClass)
         .WillOnce(Return(3));
 
     EXPECT_EQ(ClassTest::staticFunc(), 3);
+    CLEAR_JOMOCK();
 }
 ```
 
@@ -44,7 +46,7 @@ TEST(JoMock, NonStaticFunctionClass) {
     EXPECT_EQ(classTest.nonStaticFunc(), 4);
 
     mocker->restore();
-    EXPECT_EQ(classTest.nonStaticFunc(), 2);
+    EXPECT_EQ(classTest.nonStaticFunc(), 2);  
 }
 ```
 
@@ -58,6 +60,8 @@ TEST(JoMock, ParameterFunctionTest)
         .Times(Exactly(1))
         .WillOnce(Return("mocked func"));
     EXPECT_EQ(funcBinded(), "mocked func");
+    
+    CLEAR_JOMOCK();
 }
 
 TEST(JoMock, ReferenceParameterFunctionTest)
@@ -72,6 +76,8 @@ TEST(JoMock, ReferenceParameterFunctionTest)
         .WillRepeatedly(Return("mocked func"));
 
     EXPECT_EQ(ClassTest::referenceParameterFunc(ref(b), ref(c), ref(s), ref(cs)), "mocked func");
+    
+    CLEAR_JOMOCK();
 }
 ```
 
@@ -98,6 +104,8 @@ TEST(JoMock, NonStaticPolyFunctionClass)
         .Times(Exactly(1))
         .WillOnce(Return(5));
     EXPECT_EQ(classTest.nonStaticFuncOverload(c), 5);
+    
+    CLEAR_JOMOCK();
 }
 
 ```
@@ -110,6 +118,7 @@ TEST(JoMock, LogacyLibraryTest)
         .Times(Exactly(1))
         .WillOnce(Return(1));
     EXPECT_EQ(atoi("TEN"), 1);
+    CLEAR_JOMOCK();
 }
 ```
 
