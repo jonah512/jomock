@@ -110,7 +110,36 @@ TEST(JoMock, NonStaticPolyFunctionClass)
 
 ```
 
-## 6. legacy library 
+## 6. overload static functions
+```c++
+
+TEST(JoMock, StaticPolyFunctionClass)
+{
+    JOMOCK_POLY_S(mocker1 /*mocker name*/,
+                    fn1 /*unique name for function pointer*/,
+                    ClassTest::staticFuncOverload /*target function*/,
+                    int /*return type of the target function*/,
+                    (int)/*argument : *important to specify target function* */)
+    EXPECT_CALL(*mocker1, JOMOCK_FUNC(_))
+        .Times(Exactly(1))
+        .WillOnce(Return(6));
+
+    EXPECT_EQ(ClassTest::staticFuncOverload(2), 6);
+
+    char* c = nullptr;
+    JOMOCK_POLY_S(mocker2, fn2, ClassTest::staticFuncOverload, int, (char*))
+    EXPECT_CALL(*mocker2, JOMOCK_FUNC(_))
+        .Times(Exactly(1))
+        .WillOnce(Return(7));
+
+    EXPECT_EQ(ClassTest::staticFuncOverload(c), 7);
+
+    CLEAR_JOMOCK();
+}
+
+```
+
+## 7. legacy library 
 ```c++
 TEST(JoMock, LogacyLibraryTest)
 {
@@ -122,7 +151,7 @@ TEST(JoMock, LogacyLibraryTest)
 }
 ```
 
-## 7. clean up mocks
+## 8. clean up mocks
 ```c++
 CLEAR_JOMOCK();
 // or 

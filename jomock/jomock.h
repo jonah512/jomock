@@ -29,6 +29,8 @@ using namespace std;
 #define JOMOCK(function) *::jomock::MockerCreator::getJoMock<::jomock::TypeForUniqMocker<__COUNTER__>>(function, #function)
 #define JOMOCK_POLY(mocker, className, functionPoint, functionName, ret, args) ret(className::*functionPoint)args = &className::functionName;\
                                             auto mocker = &JOMOCK(functionPoint);
+#define JOMOCK_POLY_S(mocker, functionPoint, functionName, ret, args) ret(*functionPoint)args = &functionName;\
+                                            auto mocker = &JOMOCK(functionPoint);
 #define CLEAR_JOMOCK ::jomock::MockerCreator::restoreAll
 #define JOMOCK_FUNC stubFunc
 #define JOMOCK_FUNC_1(function) stubFunc(function, ::testing::_)
