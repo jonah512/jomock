@@ -42,6 +42,16 @@ public:
         return 3;
     }
 
+    int staticFuncOverload(char* c)
+    {
+       return 4;
+    }
+
+    int staticFuncOverload(int j)
+    {
+       return 4;
+    }
+
     static string parameterFunc(bool, char, string, const string&)
     {
         return "no mock";
@@ -115,6 +125,26 @@ TEST_F(JoMock, NonStaticPolyFunctionClass)
         .Times(Exactly(1))
         .WillOnce(Return(5));
     EXPECT_EQ(classTest.nonStaticFuncOverload(c), 5);
+}
+
+TEST(JoMock, StaticPolyFunctionClass)
+{
+   JOMOCK_POLY_S(mocker1, fn1, ClassTest::staticFuncOverload, int, (int))
+   EXPECT_CALL(*mocker1, JOMOCK_FUNC(_))
+      .Times(Exactly(1))
+      .WillOnce(Return(6));
+
+   EXPECT_EQ(ClassTest::staticFuncOverload(2), 6);
+
+   char* c = nullptr;
+   JOMOCK_POLY_S(mocker2, fn2, ClassTest::staticFuncOverload, int, (char*))
+   EXPECT_CALL(*mocker2, JOMOCK_FUNC(_))
+      .Times(Exactly(1))
+      .WillOnce(Return(7));
+
+   EXPECT_EQ(ClassTest::staticFuncOverload(c), 7);
+
+   CLEAR_JOMOCK();
 }
 
 TEST_F(JoMock, ParameterFunctionTest)
