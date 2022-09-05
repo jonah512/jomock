@@ -31,14 +31,19 @@ target_link_libraries(${PROJECT}
     PUBLIC
         GTest::gtest
 		GTest::gmock
-        jomock
+        jomocks
 )
 if (UNIX)
-    target_definitions(jomock_example NON_WIN32_SUPPORT)
+    target_compile_definitions(jomock_example PRIVATE NON_WIN32_SUPPORT)
     if (NOT CYGWIN)
         target_link_libraries(${PROJECT} PUBLIC pthread)
     endif()
 endif()
+
+if(MSVC)
+    target_compile_options(${PROJECT} PUBLIC /MTd /Od  /ZI /RTC1 /bigobj)
+    target_link_options(${PROJECT} PUBLIC /SAFESEH:NO /NODEFAULTLIB:library /subsystem:console)
+endif(MSVC)
 
 add_test(
     NAME ${PROJECT}
