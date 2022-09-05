@@ -31,7 +31,7 @@ target_link_libraries(${PROJECT}
     PUBLIC
         GTest::gtest
 		GTest::gmock
-        jomocks
+        jomock
 )
 if (UNIX)
     target_compile_definitions(jomock_example PRIVATE NON_WIN32_SUPPORT)
