@@ -9,7 +9,7 @@ This code provides a way to test all possible scenarios without modifying the so
 
 ## 1. global function
 ```c++
-TEST(JoMock, GlobalFunction) 
+TEST_F(JoMock, GlobalFunction) 
 {
     EXPECT_CALL(JOMOCK(func), JOMOCK_FUNC())
         .Times(Exactly(1))
@@ -22,7 +22,7 @@ TEST(JoMock, GlobalFunction)
 
 ## 2. static function in class
 ```c++
-TEST(JoMock, StaticFunctionClass) 
+TEST_F(JoMock, StaticFunctionClass) 
 {
 
     EXPECT_CALL(JOMOCK(ClassTest::staticFunc), JOMOCK_FUNC())
@@ -36,7 +36,7 @@ TEST(JoMock, StaticFunctionClass)
 
 ## 3. non virtual function in class
 ```c++
-TEST(JoMock, NonStaticFunctionClass) {
+TEST_F(JoMock, NonStaticFunctionClass) {
 
     ClassTest classTest;
     auto mocker = &JOMOCK(&ClassTest::nonStaticFunc);
@@ -52,7 +52,7 @@ TEST(JoMock, NonStaticFunctionClass) {
 
 ## 4. method with multiple parameters
 ```c++
-TEST(JoMock, ParameterFunctionTest)
+TEST_F(JoMock, ParameterFunctionTest)
 {
     auto funcBinded = bind(ClassTest::parameterFunc, true, 'c', "test", "");
     auto mocker = &JOMOCK(ClassTest::parameterFunc);
@@ -64,7 +64,7 @@ TEST(JoMock, ParameterFunctionTest)
     CLEAR_JOMOCK();
 }
 
-TEST(JoMock, ReferenceParameterFunctionTest)
+TEST_F(JoMock, ReferenceParameterFunctionTest)
 {
     bool b;
     char c;
@@ -84,7 +84,7 @@ TEST(JoMock, ReferenceParameterFunctionTest)
 ## 5. overload functions 
 ```c++
 
-TEST(JoMock, NonStaticPolyFunctionClass) 
+TEST_F(JoMock, NonStaticPolyFunctionClass) 
 {
     ClassTest classTest;
     JOMOCK_POLY(mocker1/*mocker name*/, 
@@ -113,7 +113,7 @@ TEST(JoMock, NonStaticPolyFunctionClass)
 ## 6. overload static functions
 ```c++
 
-TEST(JoMock, StaticPolyFunctionClass)
+TEST_F(JoMock, StaticPolyFunctionClass)
 {
     JOMOCK_POLY_S(mocker1 /*mocker name*/,
                     fn1 /*unique name for function pointer*/,
@@ -141,7 +141,7 @@ TEST(JoMock, StaticPolyFunctionClass)
 
 ## 7. legacy library 
 ```c++
-TEST(JoMock, LogacyLibraryTest)
+TEST_F(JoMock, LogacyLibraryTest)
 {
     EXPECT_CALL(JOMOCK(atoi), JOMOCK_FUNC(_))
         .Times(Exactly(1))
