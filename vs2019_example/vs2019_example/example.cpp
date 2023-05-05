@@ -25,6 +25,11 @@ public:
         return 1;
     }
 
+    static std::shared_ptr<ClassTest> staticFuncSharedPtr()
+    {
+        return std::make_shared<ClassTest>();
+    }
+
     int nonStaticFunc(int i)
     {
         return 2;
@@ -97,6 +102,17 @@ TEST_F(JoMock, StaticFunctionClass)
 
     EXPECT_EQ(ClassTest::staticFunc(), 3);
 }
+
+TEST_F(JoMock, StaticFunctionClassSharedPointer)
+{
+    shared_ptr<ClassTest> test = std::make_shared<ClassTest>();
+
+    EXPECT_CALL(JOMOCK(ClassTest::staticFuncSharedPtr), JOMOCK_FUNC())
+        .WillRepeatedly(Return(test));
+
+    EXPECT_EQ(ClassTest::staticFuncSharedPtr(), static_cast<shared_ptr<ClassTest>>(test));
+}
+
 
 TEST_F(JoMock, NonStaticPolyFunctionClass)
 {
