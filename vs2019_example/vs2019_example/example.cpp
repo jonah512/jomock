@@ -1,13 +1,13 @@
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "../../jomock/jomock.h"
 
 #include <iostream>
+#include <windows.h>
+#pragma comment(lib, "WS2_32.lib")
+
 using namespace ::std;
 using namespace ::testing;
-using testing::InitGoogleTest;
-
 
 string func() {
     return "no mock";
@@ -178,6 +178,23 @@ TEST_F(JoMock, LogacyLibraryTest)
         .WillOnce(Return(1));
     EXPECT_EQ(atoi("TEN"), 1);
 
+    EXPECT_CALL(JOMOCK(connect), JOMOCK_FUNC(_, _, _))
+        .Times(Exactly(1))
+        .WillOnce(Return(1));
+    EXPECT_EQ(connect(0,0, 0), 1);
+
+}
+
+int _stdcall foobar(int x) {
+    return x;
+}
+
+TEST_F(JoMock, TestGlobal) {
+    EXPECT_CALL(JOMOCK(foobar), JOMOCK_FUNC(_))
+        .WillOnce(Return(1));
+
+    ASSERT_EQ(foobar(0), 1);
+    CLEAR_JOMOCK();
 }
 
 int main(int argc, char* argv[])
