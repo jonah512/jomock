@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.8)
 set(PROJECT jomock_example)
 
-find_package(GTest)
+find_package(GTest CONFIG)
 
 if (NOT GTest_FOUND)
     include(FetchContent)
@@ -21,6 +21,8 @@ if (NOT GTest_FOUND)
     endif()
 endif()
 
+set(CMAKE_BUILD_TYPE Debug)
+
 set(SOURCES
     example.cpp
 )
@@ -31,7 +33,6 @@ target_link_libraries(${PROJECT}
     PUBLIC
         GTest::gtest
 		GTest::gmock
-        jomock
 )
 if (UNIX)
     target_compile_definitions(jomock_example PRIVATE NON_WIN32_SUPPORT)

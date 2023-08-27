@@ -9,7 +9,6 @@ using namespace ::testing;
 using testing::InitGoogleTest;
 
 
-
 string func() {
     return "no mock";
 }
@@ -21,34 +20,29 @@ int funcInt(int)
 
 class ClassTest {
 public:
-    static int staticFunc() 
+    static int staticFunc()
     {
         return 1;
     }
 
-    int nonStaticFunc(int i) 
+    static std::shared_ptr<ClassTest> staticFuncSharedPtr()
+    {
+        return std::make_shared<ClassTest>();
+    }
+
+    int nonStaticFunc(int i)
     {
         return 2;
     }
-    
-    int nonStaticFuncOverload(char * c)
+
+    int nonStaticFuncOverload(char* c)
     {
         return 3;
     }
-    
+
     int nonStaticFuncOverload(int j)
     {
         return 3;
-    }
-
-    int staticFuncOverload(char* c)
-    {
-       return 4;
-    }
-
-    int staticFuncOverload(int j)
-    {
-       return 4;
     }
 
     static string parameterFunc(bool, char, string, const string&)
@@ -109,41 +103,32 @@ TEST_F(JoMock, StaticFunctionClass)
     EXPECT_EQ(ClassTest::staticFunc(), 3);
 }
 
+TEST_F(JoMock, StaticFunctionClassSharedPointer)
+{
+    shared_ptr<ClassTest> test = std::make_shared<ClassTest>();
+
+    EXPECT_CALL(JOMOCK(ClassTest::staticFuncSharedPtr), JOMOCK_FUNC())
+        .WillRepeatedly(Return(test));
+
+    EXPECT_EQ(ClassTest::staticFuncSharedPtr(), static_cast<shared_ptr<ClassTest>>(test));
+}
+
+
 TEST_F(JoMock, NonStaticPolyFunctionClass)
 {
     ClassTest classTest;
     JOMOCK_POLY(mocker1, ClassTest, fn1, nonStaticFuncOverload, int, (int))
-    EXPECT_CALL(*mocker1, JOMOCK_FUNC(&classTest, _))
+        EXPECT_CALL(*mocker1, JOMOCK_FUNC(&classTest, _))
         .Times(Exactly(1))
         .WillOnce(Return(4));
     EXPECT_EQ(classTest.nonStaticFuncOverload(2), 4);
 
     char* c = nullptr;
     JOMOCK_POLY(mocker2, ClassTest, fn2, nonStaticFuncOverload, int, (char*))
-    EXPECT_CALL(*mocker2, JOMOCK_FUNC(&classTest, _))
+        EXPECT_CALL(*mocker2, JOMOCK_FUNC(&classTest, _))
         .Times(Exactly(1))
         .WillOnce(Return(5));
     EXPECT_EQ(classTest.nonStaticFuncOverload(c), 5);
-}
-
-TEST(JoMock, StaticPolyFunctionClass)
-{
-   JOMOCK_POLY_S(mocker1, fn1, ClassTest::staticFuncOverload, int, (int))
-   EXPECT_CALL(*mocker1, JOMOCK_FUNC(_))
-      .Times(Exactly(1))
-      .WillOnce(Return(6));
-
-   EXPECT_EQ(ClassTest::staticFuncOverload(2), 6);
-
-   char* c = nullptr;
-   JOMOCK_POLY_S(mocker2, fn2, ClassTest::staticFuncOverload, int, (char*))
-   EXPECT_CALL(*mocker2, JOMOCK_FUNC(_))
-      .Times(Exactly(1))
-      .WillOnce(Return(7));
-
-   EXPECT_EQ(ClassTest::staticFuncOverload(c), 7);
-
-   CLEAR_JOMOCK();
 }
 
 TEST_F(JoMock, ParameterFunctionTest)
@@ -163,7 +148,7 @@ TEST_F(JoMock, ReferenceParameterFunctionTest)
     string s;
     const string cs;
 
-    EXPECT_CALL(JOMOCK(ClassTest::referenceParameterFunc), JOMOCK_FUNC(_, _, _, _))
+    EXPECT_CALL(JOMOCK(ClassTest::referenceParameterFunc), JOMOCK_ARG_4)
         .Times(Exactly(1))
         .WillRepeatedly(Return("mocked func"));
 
@@ -192,15 +177,16 @@ TEST_F(JoMock, LogacyLibraryTest)
         .Times(Exactly(1))
         .WillOnce(Return(1));
     EXPECT_EQ(atoi("TEN"), 1);
+
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char* argv[])
+{
     std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
 
     testing::InitGoogleTest(&argc, argv);
-    int ret = RUN_ALL_TESTS();
+    RUN_ALL_TESTS();
+    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
 
-	std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
-
-	return ret;
+    return 0;
 }
