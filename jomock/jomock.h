@@ -81,7 +81,7 @@ namespace jomock {
         template < typename F1, typename F2 >
         static void graftFunction(F1 address, F2 destination, std::vector<char>& binary_backup) {
             void* function = reinterpret_cast<void*>((std::size_t&)address);
-            if (unprotectMemoryForOnePage(function) == 0) {
+            if (!unprotectMemoryForOnePage(function)) {
                 std::abort();
             }
             else {
@@ -103,14 +103,21 @@ namespace jomock {
         }
 
         static bool isDistanceOverflow(const std::size_t distance) {
-            return distance > INT32_MAX && distance < ((long long)INT32_MIN);
+            if(distance > INT32_MAX) return true;
+            if(distance < ((long long)INT32_MIN)) return true;
+            return false;
         }
 
         static std::size_t calculateDistance(const void* const address, const void* const destination) {
+        	#ifndef ARM64_SUPPORT
             std::size_t distance = reinterpret_cast<std::size_t>(destination)
-                - reinterpret_cast<std::size_t>(address)
-                - 5; // For jmp instruction;
+                - reinterpret_cast<std::size_t>(address) - 5; // For jmp instruction;
             return distance;
+            #else
+            std::size_t distance = reinterpret_cast<std::size_t>(destination)- reinterpret_cast<std::size_t>(address);
+            return ((distance>>2) & 0x03FFFFFF);
+            #endif
+
         }
 
         static void patchFunctionShortDistance(char* const function, const std::size_t distance) {
@@ -130,9 +137,31 @@ namespace jomock {
             std::copy(distance_bytes + 4, distance_bytes + 8, function + 9);
             function[13] = (char)0xC3; // ret
         }
+		#ifdef ARM64_SUPPORT
+        // Function to flush the instruction cache
+        static void flushInstructionCache(void* start, void* end) {
+            __builtin___clear_cache(start, end);
+        }
+        static std::size_t calculateDistanceArm64(const void* const address, const void* const destination) {
+            std::size_t distance = reinterpret_cast<std::size_t>(destination)
+                - reinterpret_cast<std::size_t>(address);
+            return ((distance>>2) & 0x03FFFFFF);
+        }
+        static void patchFunctionArm64(uint * function, const std::size_t distance) {
+            const uint32_t kBInstruction = 0x14000000;
+            uint32_t instruction =  kBInstruction | distance;
+            function[0] = instruction;
+            flushInstructionCache((void*)function, (void*)(function + sizeof(uint32_t)));
+        }
+        #endif
 
         static void setJump(void* const address, const void* const destination, std::vector<char>& binary_backup) {
             char* const function = reinterpret_cast<char*>(address);
+            #ifdef ARM64_SUPPORT
+            std::size_t distance = calculateDistanceArm64(address, destination);
+            backupBinary(function, binary_backup, 4); // 4 bytes : 1 instruction 3 data
+            patchFunctionArm64((uint*)address, distance);
+            #else
             std::size_t distance = calculateDistance(address, destination);
             if (isDistanceOverflow(distance)) {
                 backupBinary(function, binary_backup, 14); // long jmp.
@@ -142,6 +171,7 @@ namespace jomock {
                 backupBinary(function, binary_backup, 5); // short jmp.
                 patchFunctionShortDistance(function, distance);
             }
+            #endif
         }
 
         static void revertJump(void* address, const std::vector<char>& binary_backup) {

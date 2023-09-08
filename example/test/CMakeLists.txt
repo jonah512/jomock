@@ -22,7 +22,6 @@ if (NOT GTest_FOUND)
 endif()
 
 set(CMAKE_BUILD_TYPE Debug)
-
 set(SOURCES
     example.cpp
 )
@@ -39,6 +38,11 @@ if (UNIX)
     if (NOT CYGWIN)
         target_link_libraries(${PROJECT} PUBLIC pthread)
     endif()
+endif()
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+    message("Target architecture is ARM64 (aarch64)")
+    target_compile_definitions(jomock_example PRIVATE ARM64_SUPPORT)
 endif()
 
 if(MSVC)
