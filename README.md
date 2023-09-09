@@ -169,5 +169,8 @@ CLEAR_JOMOCK();
 3. add '#define NON_WIN32_SUPPORT'
 ## linux case
 1. add '#define NON_WIN32_SUPPORT'
+## embedded Linux(ARM64) case
+1. add '#define NON_WIN32_SUPPORT'
+2. add '#define ARM64_SUPPORT'
 # the original ref : 
 CppFreeMock: https://github.com/gzc9047/CppFreeMock
