@@ -137,14 +137,34 @@ namespace jomock {
 
         static void patchFunctionLongAddress(char* const function, const void* const destination) {
             const char* const distance_bytes = reinterpret_cast<const char*>(&destination);
-            function[0] = 0x68; // push
-            std::copy(distance_bytes, distance_bytes + 4, function + 1);
-            function[5] = (char)0xC7;
-            function[6] = (char)0x44;
-            function[7] = (char)0x24;
-            function[8] = (char)0x04;
-            std::copy(distance_bytes + 4, distance_bytes + 8, function + 9);
-            function[13] = (char)0xC3; // ret
+            if (sizeof(void*) == 4) {
+                // push <destination>
+                function[0] = (char)0x68;
+                function[1] = (char)distance_bytes[0];
+                function[2] = (char)distance_bytes[1];
+                function[3] = (char)distance_bytes[2];
+                function[4] = (char)distance_bytes[3];
+                // ret, i.e. pop <destination> && jump
+                function[5] = (char)0xC3;
+            } else {
+                // push <low 4 bytes of destination>
+                function[0] = 0x68; 
+                function[1] = distance_bytes[0];
+                function[2] = distance_bytes[1];
+                function[3] = distance_bytes[2];
+                function[4] = distance_bytes[3];
+                // mov dword ptr [esp+4], <high 4 bytes of destination>
+                function[5] = (char)0xC7;
+                function[6] = (char)0x44;
+                function[7] = (char)0x24;
+                function[8] = (char)0x04;
+                function[9] =  distance_bytes[4];
+                function[10] = distance_bytes[5];
+                function[11] = distance_bytes[6];
+                function[12] = distance_bytes[7];
+                // ret, i.e. pop <destination> && jmp
+                function[13] = (char)0xC3;
+            }
         }
 		#ifdef ARM64_SUPPORT
         // Function to flush the instruction cache
