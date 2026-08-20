@@ -4,21 +4,8 @@ set(PROJECT jomock_example)
 find_package(GTest CONFIG)
 
 if (NOT GTest_FOUND)
-    include(FetchContent)
-    FetchContent_Declare(
-      googletest
-      GIT_REPOSITORY https://github.com/google/googletest.git
-      GIT_TAG        release-1.12.1
-    )
     enable_testing()
-    include(GoogleTest)
-    FetchContent_GetProperties(googletest)
-
-
-    if(NOT googletest_POPULATED)
-      FetchContent_Populate(googletest)
-      add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-    endif()
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../googletest ${CMAKE_CURRENT_BINARY_DIR}/googletest EXCLUDE_FROM_ALL)
 endif()
 
 set(CMAKE_BUILD_TYPE Debug)
@@ -30,8 +17,8 @@ add_executable(${PROJECT} ${SOURCES})
 
 target_link_libraries(${PROJECT}
     PUBLIC
-        GTest::gtest
-		GTest::gmock
+        gtest
+		gmock
 )
 if (UNIX)
     target_compile_definitions(jomock_example PRIVATE NON_WIN32_SUPPORT)

@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <vector>
 #include <functional>
+#include <cstdint>
+#include <cstring>
 
 #ifndef NON_WIN32_SUPPORT
 #include <Windows.h>
@@ -81,11 +83,18 @@ namespace jomock {
         template < typename F1, typename F2 >
         static void graftFunction(F1 address, F2 destination, std::vector<char>& binary_backup) {
             void* function = reinterpret_cast<void*>((std::size_t&)address);
-            if (!unprotectMemoryForOnePage(function)) {
+            void* target = reinterpret_cast<void*>((std::size_t&)destination);
+            #ifdef ARM64_SUPPORT
+            // A far trampoline needs 16 bytes, which may span two pages.
+            const std::size_t patchSize = isDistanceOverflowArm64(function, target) ? 16 : 4;
+            #else
+            const std::size_t patchSize = 14;
+            #endif
+            if (!unprotectMemoryForRange(function, patchSize)) {
                 std::abort();
             }
             else {
-                setJump(function, reinterpret_cast<void*>((std::size_t&)destination), binary_backup);
+                setJump(function, target, binary_backup);
             }
         }
 
@@ -140,27 +149,48 @@ namespace jomock {
 		#ifdef ARM64_SUPPORT
         // Function to flush the instruction cache
         static void flushInstructionCache(void* start, void* end) {
-            __builtin___clear_cache(start, end);
+            __builtin___clear_cache(reinterpret_cast<char*>(start), reinterpret_cast<char*>(end));
         }
         static std::size_t calculateDistanceArm64(const void* const address, const void* const destination) {
             std::size_t distance = reinterpret_cast<std::size_t>(destination)
                 - reinterpret_cast<std::size_t>(address);
             return ((distance>>2) & 0x03FFFFFF);
         }
-        static void patchFunctionArm64(uint * function, const std::size_t distance) {
+        // The B instruction's imm26 (<<2) can only reach +-128MB; anything farther
+        // (e.g. libc functions mapped far from the calling binary) needs a trampoline.
+        static bool isDistanceOverflowArm64(const void* const address, const void* const destination) {
+            const std::ptrdiff_t kMaxBranchRange = 128 * 1024 * 1024;
+            std::ptrdiff_t distance = reinterpret_cast<const char*>(destination) - reinterpret_cast<const char*>(address);
+            return distance >= kMaxBranchRange || distance < -kMaxBranchRange;
+        }
+        static void patchFunctionArm64(uint32_t* function, const std::size_t distance) {
             const uint32_t kBInstruction = 0x14000000;
             uint32_t instruction =  kBInstruction | distance;
             function[0] = instruction;
-            flushInstructionCache((void*)function, (void*)(function + sizeof(uint32_t)));
+            flushInstructionCache((void*)function, (void*)(function + 1));
+        }
+        // Far jump trampoline: LDR X17, #8 ; BR X17 ; <8-byte absolute address>
+        static void patchFunctionArm64Far(uint32_t* function, const void* const destination) {
+            function[0] = 0x58000051; // LDR X17, [PC, #8]
+            function[1] = 0xD61F0220; // BR X17
+            std::size_t address = reinterpret_cast<std::size_t>(destination);
+            std::memcpy(&function[2], &address, sizeof(address));
+            flushInstructionCache((void*)function, (void*)(function + 4));
         }
         #endif
 
         static void setJump(void* const address, const void* const destination, std::vector<char>& binary_backup) {
             char* const function = reinterpret_cast<char*>(address);
             #ifdef ARM64_SUPPORT
-            std::size_t distance = calculateDistanceArm64(address, destination);
-            backupBinary(function, binary_backup, 4); // 4 bytes : 1 instruction 3 data
-            patchFunctionArm64((uint*)address, distance);
+            if (isDistanceOverflowArm64(address, destination)) {
+                backupBinary(function, binary_backup, 16); // trampoline: 2 instructions + 8 byte address
+                patchFunctionArm64Far((uint32_t*)address, destination);
+            }
+            else {
+                std::size_t distance = calculateDistanceArm64(address, destination);
+                backupBinary(function, binary_backup, 4); // 1 branch instruction
+                patchFunctionArm64((uint32_t*)address, distance);
+            }
             #else
             std::size_t distance = calculateDistance(address, destination);
             if (isDistanceOverflow(distance)) {
@@ -176,6 +206,9 @@ namespace jomock {
 
         static void revertJump(void* address, const std::vector<char>& binary_backup) {
             std::copy(binary_backup.begin(), binary_backup.end(), reinterpret_cast<char*>(address));
+            #ifdef ARM64_SUPPORT
+            flushInstructionCache(address, reinterpret_cast<char*>(address) + binary_backup.size());
+            #endif
         }
 
         static int unprotectMemory(const void* const address, const size_t length) {
@@ -190,7 +223,7 @@ namespace jomock {
 #endif
         }
 
-        static int unprotectMemoryForOnePage(void* const address) {
+        static std::size_t getPageSize() {
             static std::size_t pageSize = 0;
             if (pageSize == 0)
             {
@@ -202,7 +235,21 @@ namespace jomock {
                 pageSize = getpagesize();
 #endif
             }
-            return unprotectMemory(address, pageSize);
+            return pageSize;
+        }
+
+        static int unprotectMemoryForOnePage(void* const address) {
+            return unprotectMemory(address, getPageSize());
+        }
+
+        // Unprotects however many pages are needed to cover [address, address + length).
+        static int unprotectMemoryForRange(void* const address, const std::size_t length) {
+            const std::size_t pageSize = getPageSize();
+            const std::size_t start = alignAddress(reinterpret_cast<std::size_t>(address), pageSize);
+            const std::size_t end = reinterpret_cast<std::size_t>(address) + length;
+            const std::size_t span = end - start;
+            const std::size_t pages = (span + pageSize - 1) / pageSize;
+            return unprotectMemory(reinterpret_cast<void*>(start), pages * pageSize);
         }
     };
 
