@@ -18,12 +18,12 @@
 #include <Windows.h>
 #include <memoryapi.h>
 #else 
-#include <list>
 #include <cerrno>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <memory>
 #endif
+#include <list>
 
 
 using namespace std;
